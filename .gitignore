@@ -12,3 +12,6 @@ lol_data/
 .vscode/
 __pycache__/
 *.pyc
+
+# API Keys and Secrets
+api_key.txt
