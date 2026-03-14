@@ -1,0 +1,14 @@
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Datos pesados
+*.csv
+*.json
+lol_data/
+
+# Archivos de sistema/IDE
+.vscode/
+__pycache__/
+*.pyc
