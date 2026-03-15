@@ -19,7 +19,7 @@ chall = {
 }
 
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 10
+MATCHES_PER_PLAYER = 99
 BASE_DIR = 'lol_data'
 CSV_FILE = f'{BASE_DIR}/prueba.csv'
 
@@ -45,11 +45,24 @@ with open(COLUMNS_FILE, 'r', encoding='utf-8') as f:
             BASE_COLUMNS.append(col)
 
 ALL_COLUMNS = BASE_COLUMNS + [f"challenge_{c}" for c in CHALLENGE_COLS]
+# Filtramos cualquier columna que contenga 'pings' en su nombre (para excluirlas del CSV)
+ALL_COLUMNS = [col for col in ALL_COLUMNS if 'pings' not in col.lower()]
 
+if 'totalPings' not in ALL_COLUMNS:
+    ALL_COLUMNS.append('totalPings')
+
+processed_matches = set()
 if not os.path.exists(CSV_FILE):
     with open(CSV_FILE, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(ALL_COLUMNS)
+else:
+    with open(CSV_FILE, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Algunas líneas podrían estar vacías o incompletas
+            if row.get('jugador') and row.get('match_id'):
+                processed_matches.add((row['jugador'], row['match_id']))
 
 def safe_request(func, *args, **kwargs):
     with Semaphore(8):
@@ -66,6 +79,10 @@ def safe_request(func, *args, **kwargs):
         raise
 
 def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
+    if (riot_id, m_id) in processed_matches:
+        print(f"      Partida {m_id} para {riot_id} ya procesada en CSV. Saltando...")
+        return
+
     print(f"      Procesando partida {m_id} para {riot_id}...")
 
     # Si no existe → descargar
@@ -135,6 +152,13 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
                             if c_key in CHALLENGE_COLS:
                                 row[f"challenge_{c_key}"] = c_val
 
+                # Sumar todos los valores de las columnas que contienen 'pings'
+                total_pings = 0
+                for col_name, col_value in row.items():
+                    if 'pings' in col_name.lower() and col_name != 'totalPings' and isinstance(col_value, (int, float)):
+                        total_pings += col_value
+                row['totalPings'] = total_pings
+
                 # Escribir en el nuevo CSV
                 with open(CSV_FILE, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.DictWriter(f, fieldnames=ALL_COLUMNS, extrasaction='ignore')
@@ -173,7 +197,7 @@ for reg_name, players in chall.items():
         try:
             match_ids = safe_request(
                 lol_watcher.match.matchlist_by_puuid,
-                routing, puuid, queue=MATCH_QUEUE, count=MATCHES_PER_PLAYER
+                routing, puuid, queue=MATCH_QUEUE, count=MATCHES_PER_PLAYER + 1
             )
             
             # Guardamos siempre el resultado fresco (sobrescribimos el caché)
