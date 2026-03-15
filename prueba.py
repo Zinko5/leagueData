@@ -19,7 +19,7 @@ chall = {
 }
 
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 99
+MATCHES_PER_PLAYER = 220
 BASE_DIR = 'lol_data'
 CSV_FILE = f'{BASE_DIR}/prueba.csv'
 
@@ -195,10 +195,20 @@ for reg_name, players in chall.items():
         # === NUEVO SISTEMA DE CACHÉ INTELIGENTE ===
         print(f"      → Obteniendo las ÚLTIMAS {MATCHES_PER_PLAYER} partidas...")
         try:
-            match_ids = safe_request(
-                lol_watcher.match.matchlist_by_puuid,
-                routing, puuid, queue=MATCH_QUEUE, count=MATCHES_PER_PLAYER + 1
-            )
+            match_ids = []
+            start_index = 0
+            while len(match_ids) < MATCHES_PER_PLAYER:
+                count_to_fetch = min(100, MATCHES_PER_PLAYER - len(match_ids))
+                batch_ids = safe_request(
+                    lol_watcher.match.matchlist_by_puuid,
+                    routing, puuid, queue=MATCH_QUEUE, count=count_to_fetch, start=start_index
+                )
+                if not batch_ids:
+                    break
+                match_ids.extend(batch_ids)
+                start_index += 100
+                
+            match_ids = match_ids[:MATCHES_PER_PLAYER] # Asegurarse de no exceder el límite
             
             # Guardamos siempre el resultado fresco (sobrescribimos el caché)
             with open(cache_file, 'w') as f:
