@@ -21,12 +21,15 @@ chall = {
 MATCH_QUEUE = 420
 MATCHES_PER_PLAYER = 220
 BASE_DIR = 'lol_data'
-CSV_FILE = f'{BASE_DIR}/prueba.csv'
+CACHE_DIR = f'{BASE_DIR}/cache'
+DATASET_DIR = f'{BASE_DIR}/dataset'
+CSV_FILE = f'{DATASET_DIR}/prueba.csv'
 
-os.makedirs(BASE_DIR, exist_ok=True)
+os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(DATASET_DIR, exist_ok=True)
 for reg in chall:
-    os.makedirs(f'{BASE_DIR}/{reg}/matches', exist_ok=True)
-    os.makedirs(f'{BASE_DIR}/{reg}/matchlist_cache', exist_ok=True)
+    os.makedirs(f'{CACHE_DIR}/{reg}/matches', exist_ok=True)
+    os.makedirs(f'{CACHE_DIR}/{reg}/matchlist_cache', exist_ok=True)
 
 # Archivo de configuración de columnas
 COLUMNS_FILE = 'utiles/varUtiles.md'  # Cambia este archivo para usar otras columnas
@@ -190,7 +193,7 @@ for reg_name, players in chall.items():
             print(f"      Error obteniendo PUUID: {e}")
             continue
 
-        cache_file = f'{BASE_DIR}/{reg_name}/matchlist_cache/{puuid}.json'
+        cache_file = f'{CACHE_DIR}/{reg_name}/matchlist_cache/{puuid}.json'
 
         # === NUEVO SISTEMA DE CACHÉ INTELIGENTE ===
         print(f"      → Obteniendo las ÚLTIMAS {MATCHES_PER_PLAYER} partidas...")
@@ -224,7 +227,7 @@ for reg_name, players in chall.items():
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [
                 executor.submit(process_match, m_id, riot_id, puuid, routing,
-                                f"{BASE_DIR}/{reg_name}/matches/{m_id}.json")
+                                f"{CACHE_DIR}/{reg_name}/matches/{m_id}.json")
                 for m_id in match_ids
             ]
             concurrent.futures.wait(futures)
