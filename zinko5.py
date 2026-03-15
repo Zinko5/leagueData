@@ -23,7 +23,7 @@ MATCHES_PER_PLAYER = 220
 BASE_DIR = 'lol_data'
 CACHE_DIR = f'{BASE_DIR}/cache'
 DATASET_DIR = f'{BASE_DIR}/dataset'
-CSV_FILE = f'{DATASET_DIR}/prueba.csv'
+CSV_FILE = f'{DATASET_DIR}/zinko5.csv'
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DATASET_DIR, exist_ok=True)
@@ -176,7 +176,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
     except Exception as e:
         print(f"      Error procesando {m_id}: {e}")
 
-print("🚀 SCRAPER CHALL LAS – CSV MÁXIMO COMPLETO\n")
+print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
 
 for reg_name, players in chall.items():
     routing = {'LAS': 'americas'}[reg_name]
@@ -234,4 +234,3 @@ for reg_name, players in chall.items():
 
 print(f"\n🏆 TERMINADO")
 print(f"CSV muy completo en: {CSV_FILE}")
-print("Ahora incluye pings, consumables, spells casts, items 0-6, challenges, etc.")
