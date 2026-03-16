@@ -15,15 +15,17 @@ riot_watcher = RiotWatcher(API_KEY)
 
 # Tus jugadores (sin cambios)
 players = {
-    'LAS': ["Zinko5#LAS"]
+    'KR': ["Peyz#KR11", "Selfless#KR11", "HLE Gumayusi#0298", "대월아#KR1", "Snow Country#0405", "reze#ブー ム"],
+    'EUW': ["KC NEXT ADKING#EUW", "Expedition 28#BLACK", "Leuki kai Kafes#3309", "JONH DO#KISS", "Ryuk#adc", "afkdoks#3101"],
+    'NA': ["Mobility#NA2", "Sign#213", "Zven#S16XD", "Doublelift#NA01", "LYON Berserker#ddd", "Daption#TwTv"]
 }
 
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 220
+MATCHES_PER_PLAYER = 30
 BASE_DIR = 'lol_data'
 CACHE_DIR = f'{BASE_DIR}/cache'
 DATASET_DIR = f'{BASE_DIR}/dataset'
-CSV_FILE = f'{DATASET_DIR}/zinko5.csv'
+CSV_FILE = f'{DATASET_DIR}/challengersADC.csv'
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DATASET_DIR, exist_ok=True)
@@ -122,6 +124,11 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 
                 print(f"      ENCONTRADO → Posición team: {team_pos} | individual: {ind_pos} | champ: {champ}")
 
+                # Verificador de ADC:
+                if team_pos != 'BOTTOM':
+                    print(f"      ↳ DESCARTADA (no BOTTOM)")
+                    return
+                    
                 row = {}
                 row["jugador"] = riot_id
                 row["match_id"] = m_id
@@ -187,7 +194,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
 
 for reg_name, players in players.items():
-    routing = {'LAS': 'americas'}[reg_name]
+    routing = {'KR': 'asia', 'EUW': 'europe', 'NA': 'americas'}[reg_name]
     print(f"🌍 {reg_name} ({len(players)} jugadores)...")
 
     for riot_id in players:

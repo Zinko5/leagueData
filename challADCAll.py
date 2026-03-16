@@ -15,15 +15,17 @@ riot_watcher = RiotWatcher(API_KEY)
 
 # Tus jugadores (sin cambios)
 players = {
-    'LAS': ["Zinko5#LAS"]
+    'KR': ["Peyz#KR11", "Selfless#KR11", "HLE Gumayusi#0298", "대월아#KR1", "Snow Country#0405", "reze#ブー ム"],
+    'EUW': ["KC NEXT ADKING#EUW", "Expedition 28#BLACK", "Leuki kai Kafes#3309", "JONH DO#KISS", "Ryuk#adc", "afkdoks#3101"],
+    'NA': ["Mobility#NA2", "Sign#213", "Zven#S16XD", "Doublelift#NA01", "LYON Berserker#ddd", "Daption#TwTv"]
 }
 
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 220
+MATCHES_PER_PLAYER = 30
 BASE_DIR = 'lol_data'
 CACHE_DIR = f'{BASE_DIR}/cache'
 DATASET_DIR = f'{BASE_DIR}/dataset'
-CSV_FILE = f'{DATASET_DIR}/zinko5.csv'
+CSV_FILE = f'{DATASET_DIR}/challengersADCAll.csv'
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DATASET_DIR, exist_ok=True)
@@ -122,6 +124,11 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 
                 print(f"      ENCONTRADO → Posición team: {team_pos} | individual: {ind_pos} | champ: {champ}")
 
+                # Verificador de ADC:
+                if team_pos != 'BOTTOM':
+                    print(f"      ↳ DESCARTADA (no BOTTOM)")
+                    return
+
                 row = {}
                 row["jugador"] = riot_id
                 row["match_id"] = m_id
@@ -187,7 +194,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
 
 for reg_name, players in players.items():
-    routing = {'LAS': 'americas'}[reg_name]
+    routing = {'KR': 'asia', 'EUW': 'europe', 'NA': 'americas'}[reg_name]
     print(f"🌍 {reg_name} ({len(players)} jugadores)...")
 
     for riot_id in players:
@@ -230,13 +237,26 @@ for reg_name, players in players.items():
             print(f"      Error al obtener matchlist: {e}")
             continue
 
-        print(f"      → Procesando {len(match_ids)} partidas (usando caché de JSONs individuales)...")
+        print(f"      → Procesando {len(match_ids)} partidas extraídas...")
+
+        # === AÑADIR TODO EL CACHÉ ANTIGUO ===
+        matches_dir = f"{CACHE_DIR}/{reg_name}/matches"
+        cached_match_ids = set()
+        if os.path.exists(matches_dir):
+            for file_name in os.listdir(matches_dir):
+                if file_name.endswith('.json'):
+                    cached_match_ids.add(file_name.replace('.json', ''))
+        
+        # Unir ambas listas sin duplicados
+        all_match_ids = list(set(match_ids).union(cached_match_ids))
+
+        print(f"      → Total a procesar: {len(all_match_ids)} partidas (incluidas las del caché global de la región)...")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [
                 executor.submit(process_match, m_id, riot_id, puuid, routing,
                                 f"{CACHE_DIR}/{reg_name}/matches/{m_id}.json")
-                for m_id in match_ids
+                for m_id in all_match_ids
             ]
             concurrent.futures.wait(futures)
 
