@@ -35,19 +35,19 @@ for reg in players:
 COLUMNS_FILE = 'utiles/varUtiles.txt'  # Cambia este archivo para usar otras columnas
 
 BASE_COLUMNS = []
-playersENGE_COLS = []
+CHALLENGE_COLS = []
 
 with open(COLUMNS_FILE, 'r', encoding='utf-8') as f:
     for line in f:
         col = line.strip()
         if not col or col.startswith('#'):
             continue
-        if col.startswith('playersenge_'):
-            playersENGE_COLS.append(col.replace('playersenge_', '', 1))
+        if col.startswith('challenge_'):
+            CHALLENGE_COLS.append(col.replace('challenge_', '', 1))
         else:
             BASE_COLUMNS.append(col)
 
-ALL_COLUMNS = BASE_COLUMNS + [f"playersenge_{c}" for c in playersENGE_COLS]
+ALL_COLUMNS = BASE_COLUMNS + [f"challenge_{c}" for c in CHALLENGE_COLS]
 # Filtramos cualquier columna que contenga 'pings' en su nombre (para excluirlas del CSV)
 ALL_COLUMNS = [col for col in ALL_COLUMNS if 'pings' not in col.lower()]
 
@@ -150,10 +150,10 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
                     if key in row: continue  # ya tenemos algunos
                     if isinstance(value, (int, float, bool, str)):
                         row[key] = value
-                    elif isinstance(value, dict) and key == 'playersenges':
+                    elif isinstance(value, dict) and key == 'challenges':
                         for c_key, c_val in value.items():
-                            if c_key in playersENGE_COLS:
-                                row[f"playersenge_{c_key}"] = c_val
+                            if c_key in CHALLENGE_COLS:
+                                row[f"challenge_{c_key}"] = c_val
 
                 # Sumar todos los valores de las columnas que contienen 'pings'
                 total_pings = 0
@@ -161,6 +161,13 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
                     if 'pings' in col_name.lower() and col_name != 'totalPings' and isinstance(col_value, (int, float)):
                         total_pings += col_value
                 row['totalPings'] = total_pings
+
+                # Controlador de valores faltantes (útil para trabajar con datasets sucios)
+                # # Rellenar con 0 cualquier valor faltante para evitar celdas vacías en el CSV
+                # for col_name in ALL_COLUMNS:
+                #     if col_name not in row:
+                #         row[col_name] = "False"
+                #         row[col_name] = 0
 
                 # Escribir en el nuevo CSV
                 with open(CSV_FILE, 'a', newline='', encoding='utf-8') as f:
