@@ -14,40 +14,40 @@ lol_watcher = LolWatcher(API_KEY)
 riot_watcher = RiotWatcher(API_KEY)
 
 # Tus jugadores (sin cambios)
-chall = {
+players = {
     'LAS': ["Zinko5#LAS"]
 }
 
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 220
+MATCHES_PER_PLAYER = 20
 BASE_DIR = 'lol_data'
 CACHE_DIR = f'{BASE_DIR}/cache'
 DATASET_DIR = f'{BASE_DIR}/dataset'
-CSV_FILE = f'{DATASET_DIR}/zinko5.csv'
+CSV_FILE = f'{DATASET_DIR}/prueba.csv'
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DATASET_DIR, exist_ok=True)
-for reg in chall:
+for reg in players:
     os.makedirs(f'{CACHE_DIR}/{reg}/matches', exist_ok=True)
     os.makedirs(f'{CACHE_DIR}/{reg}/matchlist_cache', exist_ok=True)
 
 # Archivo de configuración de columnas
-COLUMNS_FILE = 'utiles/varUtiles.md'  # Cambia este archivo para usar otras columnas
+COLUMNS_FILE = 'utiles/varUtiles.txt'  # Cambia este archivo para usar otras columnas
 
 BASE_COLUMNS = []
-CHALLENGE_COLS = []
+playersENGE_COLS = []
 
 with open(COLUMNS_FILE, 'r', encoding='utf-8') as f:
     for line in f:
         col = line.strip()
         if not col or col.startswith('#'):
             continue
-        if col.startswith('challenge_'):
-            CHALLENGE_COLS.append(col.replace('challenge_', '', 1))
+        if col.startswith('playersenge_'):
+            playersENGE_COLS.append(col.replace('playersenge_', '', 1))
         else:
             BASE_COLUMNS.append(col)
 
-ALL_COLUMNS = BASE_COLUMNS + [f"challenge_{c}" for c in CHALLENGE_COLS]
+ALL_COLUMNS = BASE_COLUMNS + [f"playersenge_{c}" for c in playersENGE_COLS]
 # Filtramos cualquier columna que contenga 'pings' en su nombre (para excluirlas del CSV)
 ALL_COLUMNS = [col for col in ALL_COLUMNS if 'pings' not in col.lower()]
 
@@ -126,34 +126,34 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
                 row["jugador"] = riot_id
                 row["match_id"] = m_id
                 row["side"] = "Blue" if p['teamId'] == 100 else "Red"
-                row["teamPosition"] = team_pos
-                row["individualPosition"] = ind_pos
-                row["championName"] = champ
+                # row["teamPosition"] = team_pos
+                # row["individualPosition"] = ind_pos
+                # row["championName"] = champ
                 row["win"] = p.get('win', False)
 
-                row["kills"] = p.get('kills', 0)
-                row["deaths"] = p.get('deaths', 0)
-                row["assists"] = p.get('assists', 0)
-                row["kda"] = f"{row['kills']}/{row['deaths']}/{row['assists']}"
+                # row["kills"] = p.get('kills', 0)
+                # row["deaths"] = p.get('deaths', 0)
+                # row["assists"] = p.get('assists', 0)
+                # row["kda"] = f"{row['kills']}/{row['deaths']}/{row['assists']}"
 
-                kp = p.get('challenges', {}).get('killParticipation', 0)
-                row["killParticipation"] = round(kp * 100, 1) if kp else 0
+                # kp = p.get('playersenges', {}).get('killParticipation', 0)
+                # row["killParticipation"] = round(kp * 100, 1) if kp else 0
 
-                duration_min = info['gameDuration'] / 60.0 or 1.0
-                cs_total = p.get('totalMinionsKilled', 0) + p.get('neutralMinionsKilled', 0)
-                row["cs/min"] = round(cs_total / duration_min, 2)
-                row["totalMinionsKilled"] = p.get('totalMinionsKilled', 0)
-                row["neutralMinionsKilled"] = p.get('neutralMinionsKilled', 0)
+                # duration_min = info['gameDuration'] / 60.0 or 1.0
+                # cs_total = p.get('totalMinionsKilled', 0) + p.get('neutralMinionsKilled', 0)
+                # row["cs/min"] = round(cs_total / duration_min, 2)
+                # row["totalMinionsKilled"] = p.get('totalMinionsKilled', 0)
+                # row["neutralMinionsKilled"] = p.get('neutralMinionsKilled', 0)
 
                 # Copiar TODOS los campos directos del participante (excepto dicts complejos)
                 for key, value in p.items():
                     if key in row: continue  # ya tenemos algunos
                     if isinstance(value, (int, float, bool, str)):
                         row[key] = value
-                    elif isinstance(value, dict) and key == 'challenges':
+                    elif isinstance(value, dict) and key == 'playersenges':
                         for c_key, c_val in value.items():
-                            if c_key in CHALLENGE_COLS:
-                                row[f"challenge_{c_key}"] = c_val
+                            if c_key in playersENGE_COLS:
+                                row[f"playersenge_{c_key}"] = c_val
 
                 # Sumar todos los valores de las columnas que contienen 'pings'
                 total_pings = 0
@@ -164,6 +164,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 
                 # Escribir en el nuevo CSV
                 with open(CSV_FILE, 'a', newline='', encoding='utf-8') as f:
+                    # writer = csv.DictWriter(f, fieldnames=ALL_COLUMNS)
                     writer = csv.DictWriter(f, fieldnames=ALL_COLUMNS, extrasaction='ignore')
                     writer.writerow(row)
 
@@ -178,7 +179,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 
 print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
 
-for reg_name, players in chall.items():
+for reg_name, players in players.items():
     routing = {'LAS': 'americas'}[reg_name]
     print(f"🌍 {reg_name} ({len(players)} jugadores)...")
 
