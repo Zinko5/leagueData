@@ -13,9 +13,8 @@ timePlayed
 visionScore
 totalDamageDealtToChampions
 totalDamageTaken
-baronKills
-dragonKills
 challenge_teamRiftHeraldKills
+challenge_teamBaronKills
 challenge_teamElderDragonKills
 damageDealtToEpicMonsters
 turretKills

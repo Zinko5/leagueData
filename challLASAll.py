@@ -13,21 +13,17 @@ with open('api_key.txt', 'r') as f:
 lol_watcher = LolWatcher(API_KEY)
 riot_watcher = RiotWatcher(API_KEY)
 
-# Tus jugadores (sin cambios)
-players = {
-    'LAS': ["Zinko5#LAS"]
-}
-
 MATCH_QUEUE = 420
-MATCHES_PER_PLAYER = 220
+MATCHES_PER_PLAYER = 30
 BASE_DIR = 'lol_data'
 CACHE_DIR = f'{BASE_DIR}/cache'
 DATASET_DIR = f'{BASE_DIR}/dataset'
-CSV_FILE = f'{DATASET_DIR}/zinko5.csv'
+CSV_FILE = f'{DATASET_DIR}/challengersLASAll.csv'
+PLAYERS = 12
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.makedirs(DATASET_DIR, exist_ok=True)
-for reg in players:
+for reg in ['LAS']:
     os.makedirs(f'{CACHE_DIR}/{reg}/matches', exist_ok=True)
     os.makedirs(f'{CACHE_DIR}/{reg}/matchlist_cache', exist_ok=True)
 
@@ -122,6 +118,11 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
 
                 print(f"      ENCONTRADO → Posición team: {team_pos} | individual: {ind_pos} | champ: {champ}")
 
+                # Verificador de ADC:
+                # if team_pos != 'BOTTOM':
+                #     print(f"      ↳ DESCARTADA (no BOTTOM)")
+                #     return
+
                 row = {}
                 row["jugador"] = riot_id
                 row["match_id"] = m_id
@@ -179,18 +180,35 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
                 return
 
         if not encontrado:
-            print(f"      ↳ NO ENCONTRADO → PUUID no aparece en participantes")
+            pass # print(f"      ↳ NO ENCONTRADO → PUUID no aparece en participantes")
 
     except Exception as e:
         print(f"      Error procesando {m_id}: {e}")
 
-print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
+print("🚀 SCRAPER ADCs – CSV MÁXIMO COMPLETO\n")
 
-for reg_name, players in players.items():
+print(f"Obteniendo top {PLAYERS} challengers de LAS...")
+las_challengers = safe_request(lol_watcher.league.challenger_by_queue, 'la2', 'RANKED_SOLO_5x5')
+entries = sorted(las_challengers['entries'], key=lambda x: x['leaguePoints'], reverse=True)[:PLAYERS]
+
+las_players = []
+for entry in entries:
+    try:
+        puuid = entry['puuid']
+        account = safe_request(riot_watcher.account.by_puuid, 'americas', puuid)
+        riot_id = f"{account['gameName']}#{account['tagLine']}"
+        las_players.append(riot_id)
+        print(f"   Top: {riot_id} (LP: {entry['leaguePoints']})")
+    except Exception as e:
+        print(f"   Error obteniendo datos de puuid {entry.get('puuid')}: {e}")
+
+players_dict = {'LAS': las_players}
+
+for reg_name, p_list in players_dict.items():
     routing = {'LAS': 'americas'}[reg_name]
-    print(f"🌍 {reg_name} ({len(players)} jugadores)...")
+    print(f"🌍 {reg_name} ({len(p_list)} jugadores)...")
 
-    for riot_id in players:
+    for riot_id in p_list:
         print(f"   → {riot_id}")
         game_name, tag = riot_id.split('#')
 
@@ -230,13 +248,26 @@ for reg_name, players in players.items():
             print(f"      Error al obtener matchlist: {e}")
             continue
 
-        print(f"      → Procesando {len(match_ids)} partidas (usando caché de JSONs individuales)...")
+        print(f"      → Procesando {len(match_ids)} partidas extraídas...")
+
+        # === AÑADIR TODO EL CACHÉ ANTIGUO ===
+        matches_dir = f"{CACHE_DIR}/{reg_name}/matches"
+        cached_match_ids = set()
+        if os.path.exists(matches_dir):
+            for file_name in os.listdir(matches_dir):
+                if file_name.endswith('.json'):
+                    cached_match_ids.add(file_name.replace('.json', ''))
+        
+        # Unir ambas listas sin duplicados
+        all_match_ids = list(set(match_ids).union(cached_match_ids))
+
+        print(f"      → Total a procesar: {len(all_match_ids)} partidas (incluidas las del caché global de la región)...")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [
                 executor.submit(process_match, m_id, riot_id, puuid, routing,
                                 f"{CACHE_DIR}/{reg_name}/matches/{m_id}.json")
-                for m_id in match_ids
+                for m_id in all_match_ids
             ]
             concurrent.futures.wait(futures)
 

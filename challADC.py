@@ -191,7 +191,7 @@ def process_match(m_id, riot_id, puuid_jugador, routing, match_path):
     except Exception as e:
         print(f"      Error procesando {m_id}: {e}")
 
-print("🚀 SCRAPER Zinko5 – CSV MÁXIMO COMPLETO\n")
+print("🚀 SCRAPER ADCs – CSV MÁXIMO COMPLETO\n")
 
 for reg_name, players in players.items():
     routing = {'KR': 'asia', 'EUW': 'europe', 'NA': 'americas'}[reg_name]
