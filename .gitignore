@@ -1,17 +1,20 @@
-# Entorno virtual
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 venv/
-.venv/
-env/
+.env
 
-# Datos pesados
+# Data
+lol_data/
+data/
 *.csv
 *.json
-lol_data/
 
-# Archivos de sistema/IDE
-.vscode/
-__pycache__/
-*.pyc
-
-# API Keys and Secrets
+# Config
 api_key.txt
+config/api_key.txt
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,14 @@
+# Lista manual de jugadores para recolectar datos
+# Formato: RiotID#Tag, Region
+# Ejemplo:
+# Zinko5#LAS, LAS
+# Faker#T1, KR
+
+Peyz#KR11, KR
+Selfless#KR11, KR
+HLE Gumayusi#0298, KR
+대월아#KR1, KR
+KC NEXT ADKING#EUW, EUW
+Expedition 28#BLACK, EUW
+Doublelift#NA01, NA
+LYON Berserker#ddd, NA

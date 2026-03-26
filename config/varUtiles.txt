@@ -8,6 +8,7 @@ individualPosition
 kills
 deaths
 assists
+totalMinionsKilled
 goldEarned
 timePlayed
 visionScore
