@@ -20,46 +20,61 @@ Este repositorio ha sido organizado siguiendo las mejores prácticas de desarrol
 
 ## Scripts Disponibles
 
-Todos los scripts se encuentran en la carpeta `scripts/`.
+Todos los scripts se encuentran en la carpeta `scripts/`. Se ejecutan desde la raíz del proyecto.
 
 ### 1. Recolectar datos de un jugador (Zinko5)
+Descarga el historial de partidas desde la API de Riot y lo guarda en CSV. Cada descarga de JSON se guarda en caché local.
 ```bash
-python scripts/collect_player.py Zinko5#LAS LAS 100
+python scripts/collect_player.py [RiotID#Tag] [Región] [Cantidad]
 ```
-- **Nombre CSV:** `zinko5.csv` (por defecto el nombre del jugador).
+- **Parámetros:**
+    - `RiotID#Tag`: El nombre completo con el tag (ej: `Zinko5#LAS`).
+    - `Región`: La región (ej: `LAS`, `NA`, `EUW`, `KR`). Por defecto `LAS`.
+    - `Cantidad`: Número de partidas a descargar. Por defecto `100`.
+- **Salida:** Un archivo CSV con el nombre del jugador en `lol_data/dataset/`.
 
-### 2. Recolectar datos de los mejores jugadores (Challengers)
+### 2. Extraer datos solo del caché local (Nuevo)
+Útil para procesar rápidamente partidas que ya has descargado sin usar la API de Riot ni gastar cuota de límite de velocidad.
 ```bash
-python scripts/collect_challengers.py [Regiones] [CantidadJugadores] [PartidasPorJugador] [Posicion] [NombreCSV]
-# Ejemplo 1 (Top 10 de LAS en posición ADC):
-python scripts/collect_challengers.py LAS 10 10 ADC
-# Ejemplo 2 (Top 10 de LAS y NA combinados, sin importar la posición):
-python scripts/collect_challengers.py LAS,NA 10 10 ALL top_las_na.csv
+python scripts/collect_player_cache.py [RiotID#Tag] [Región] [Posición] [NombreCSV]
 ```
-- **Nombre CSV:** `challengers_LAS_NA_ALL.csv` (por defecto resume regiones y posición).
+- **Parámetros:**
+    - `RiotID#Tag`: El nombre del jugador a filtrar.
+    - `Región`: La región del caché (ej: `LAS`). Por defecto `LAS`.
+    - `Posición`: Filtrar por rol (`TOP`, `JGL`, `MID`, `ADC`, `SUPP` o `ALL`). Por defecto `ALL`.
+    - `NombreCSV`: (Opcional) Nombre personalizado para el archivo de salida.
+- **Salida:** Un archivo CSV filtrado en `lol_data/dataset/`.
 
-### 3. Recolectar datos de una lista manual de 20+ jugadores
-1. Edita el archivo `config/manual_players.txt` con la lista de jugadores (RiotID#Tag, Región).
-2. Ejecuta:
+### 3. Recolectar datos de los mejores jugadores (Challengers)
+Busca la liga Challenger de las regiones indicadas y descarga partidas de los mejores jugadores.
 ```bash
-python scripts/collect_manual.py [PartidasPorJugador] [Posicion] [NombreCSV]
-# Ejemplo:
-python scripts/collect_manual.py 20 ALL seleccion_grupal.csv
+python scripts/collect_challengers.py [Regiones] [CantJugadores] [PartidasXJugador] [Posición] [NombreCSV]
 ```
+- **Parámetros:**
+    - `Regiones`: Lista separada por comas (ej: `LAS,NA,BR`).
+    - `CantJugadores`: Cuántos jugadores del top por región. Por defecto `10`.
+    - `PartidasXJugador`: Cuántas partidas de cada uno. Por defecto `20`.
+    - `Posición`: Filtrar por rol (ej: `ADC`). Por defecto `ALL`.
+    - `NombreCSV`: (Opcional) Nombre del archivo final.
 
-- **Nombre CSV:** `Manual_selection.csv` (por defecto el nombre del archivo de configuración).
+### 4. Recolectar datos de una lista manual
+Procesa los jugadores listados en `config/manual_players.txt`.
+```bash
+python scripts/collect_manual.py [PartidasXJugador] [Posición] [NombreCSV]
+```
+- **Archivo config:** Cada línea debe ser `Nombre#Tag, Región` (ej: `Faker#KR1, KR`).
 
-### 4. Procesar todo el caché a CSV
+### 5. Procesar TODO el caché masivamente
+Escanea absolutamente todos los archivos JSON en `lol_data/cache/` y los vuelca en un solo archivo CSV gigante (`todos.csv`).
 ```bash
 python scripts/process_all_cache.py
-# Escanea lol_data/cache/ y genera o actualiza lol_data/dataset/todos.csv
 ```
 
-### 5. Actualizar rankings y estadísticas de jugadores (`guardaJugadores.py`)
+### 6. Actualizar rankings y estadísticas (`guardaJugadores.py`)
 ```bash
 python scripts/manage_players.py
-# Te permite elegir un dataset y buscar los rankings actuales (Tier, Rank, LP) de todos los jugadores presentes.
 ```
+- Lee un dataset CSV, identifica a todos los jugadores únicos y utiliza la API de Riot para obtener su Tier, Rango y LP actualos (útil para validación de modelos).
 
 ---
 

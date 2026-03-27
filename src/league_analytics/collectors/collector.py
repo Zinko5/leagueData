@@ -91,8 +91,45 @@ class DataCollector:
         
         match_ids = self.client.get_match_ids(puuid, routing, count=count)
         
+        # Guardar matchlist en caché para uso futuro (legacy compatibility and performance)
+        matchlist_dir = ProjectConfig.CACHE_DIR / platform / 'matchlist_cache'
+        matchlist_dir.mkdir(parents=True, exist_ok=True)
+        with open(matchlist_dir / f"{puuid}.json", 'w') as f:
+            json.dump(match_ids, f)
+
         csv_filename = csv_name or f"{riot_id.split('#')[0].lower()}.csv"
         self.process_and_save_matches(match_ids, routing, platform, target_puuid=puuid, riot_id_label=riot_id, csv_name=csv_filename)
+
+    def collect_from_cache(self, riot_id, region='LAS', position=None, csv_name=None):
+        """Process only matches already in local cache for a specific player."""
+        platform, routing = ProjectConfig.get_routing(region)
+        print(f"📦 Extracting cached matches for {riot_id} in {region} ({platform})")
+        
+        puuid = self.client.get_puuid(riot_id, routing)
+        if not puuid:
+            print(f"   Error: Could not find PUUID for {riot_id}")
+            return
+
+        # 1. Try to get match IDs from matchlist_cache
+        matchlist_path = ProjectConfig.CACHE_DIR / platform / 'matchlist_cache' / f"{puuid}.json"
+        match_ids = []
+        if matchlist_path.exists():
+            with open(matchlist_path, 'r') as f:
+                match_ids = json.load(f)
+        else:
+            # 2. Fallback: scan all cached matches for this region
+            print("   Matchlist not in cache, scanning matches folder... (this may take a while)")
+            matches_path = ProjectConfig.CACHE_DIR / platform / 'matches'
+            if matches_path.exists():
+                match_ids = [f.stem for f in matches_path.glob('*.json')]
+
+        if not match_ids:
+            print("   No cached matches found.")
+            return
+
+        csv_filename = csv_name or f"{riot_id.split('#')[0].lower()}_cache.csv"
+        self.process_and_save_matches(match_ids, routing, platform, target_puuid=puuid, 
+                                    riot_id_label=riot_id, csv_name=csv_filename, position=position)
 
     def collect_challengers(self, regions=['LAS'], count_players=10, matches_per_player=20, position=None, csv_name=None):
         """Logic for challenger collection across one or more regions."""

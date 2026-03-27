@@ -19,12 +19,19 @@ class ProjectConfig:
     API_KEY_FILE = CONFIG_DIR / 'api_key.txt'
     COLUMNS_FILE = CONFIG_DIR / 'varUtiles.txt'
     VAR_TODAS_FILE = CONFIG_DIR / 'varTodas.txt'
-
+    
     @classmethod
     def setup_directories(cls):
         """Ensure all required directories exist."""
         for d in [cls.CONFIG_DIR, cls.DATA_DIR, cls.CACHE_DIR, cls.DATASET_DIR, cls.PLAYER_DATA_DIR]:
             d.mkdir(parents=True, exist_ok=True)
+            
+    @classmethod
+    def get_matchlist_cache_path(cls, platform):
+        """Path for the matchlist cache of a specific platform."""
+        path = cls.CACHE_DIR / platform.lower() / 'matchlist_cache'
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     @classmethod
     def load_api_key(cls):
