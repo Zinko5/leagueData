@@ -26,3 +26,4 @@ challenge_highestChampionDamage
 challenge_killParticipation
 challenge_laningPhaseGoldExpAdvantage
 challenge_teamDamagePercentage
+gameCreation

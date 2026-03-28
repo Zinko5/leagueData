@@ -53,7 +53,8 @@ class MatchProcessor:
                     "jugador": player_name,
                     "match_id": m_id,
                     "side": "Blue" if p.get('teamId') == 100 else "Red",
-                    "win": p.get('win', False)
+                    "win": p.get('win', False),
+                    "gameCreation": info.get('gameCreation', 0)
                 }
 
                 # Direct mapping of fields based on presence in all_columns

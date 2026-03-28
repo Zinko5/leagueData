@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zinko5 | Personal League Stats</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <header>
+            <div class="profile-info">
+                <div class="profile-avatar">Z</div>
+                <div class="profile-text">
+                    <h1>Zinko5<span>#LAS</span></h1>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <p class="role-tag">Personal Performance Dashboard</p>
+                        <div id="total-matches-badge" class="stats-mini-badge">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-group">
+                <select id="champion-filter" class="custom-select"><option value="">All Champions</option></select>
+                <select id="position-filter" class="custom-select"><option value="">All Positions</option></select>
+                <select id="stat-filter" class="custom-select"><option value="">Select Stat</option></select>
+            </div>
+            <div class="actions">
+                <button id="update-btn" class="glow-on-hover">UPDATE MATCHES</button>
+            </div>
+        </header>
+
+        <section id="match-list" class="match-list">
+            <!-- Loading indicator -->
+            <div class="loader-container">
+                <div class="loader"></div>
+                <p>Loading your match history...</p>
+            </div>
+        </section>
+
+        <footer>
+            <div class="pagination">
+                <button id="prev-page" class="page-btn">← PREVIOUS</button>
+                <div id="page-display" style="font-weight: bold; opacity: 0.8;">Page 1 of 1</div>
+                <button id="next-page" class="page-btn">NEXT →</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Match Detail Modal -->
+    <div id="match-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div id="modal-body">
+                <!-- Detailed stats will go here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
