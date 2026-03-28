@@ -60,19 +60,40 @@ async def get_profile_data(champion: str = None, position: str = None, page: int
     with open(PROJECT_ROOT / "config/varUtiles.txt", 'r') as f:
         useful_vars = [line.strip() for line in f if line.strip()]
         
+    METRICS_TO_NORMALIZE = [
+        'goldEarned', 
+        'totalMinionsKilled', 
+        'totalDamageDealtToChampions', 
+        'totalDamageTaken', 
+        'damageDealtToEpicMonsters', 
+        'damageDealtToTurrets',
+        'kills',
+        'deaths',
+        'assists',
+        'visionScore'
+    ]
+
     matches = []
     for _, row in df_slice.iterrows():
         pos = row.get('individualPosition', 'UNKNOWN')
         if pos not in benchmarks: pos = "MIDDLE"
         stats_scores, total_score, scored_v_count = {}, 0, 0
         
+        time_played = row.get('timePlayed', 0)
+        minutes = time_played / 60.0 if time_played > 0 else 1.0
+
         for var in useful_vars:
             if var in row and var in benchmarks.get(pos, {}):
                 val = row[var]
                 if pd.isna(val): val = 0
-                p_score = get_percentile(val, benchmarks[pos][var])
+                
+                # Normalize for comparison if necessary
+                compare_val = val / minutes if var in METRICS_TO_NORMALIZE else val
+                
+                p_score = get_percentile(compare_val, benchmarks[pos][var])
                 if var == "deaths": p_score = 100 - p_score
-                stats_scores[var] = {"value": val, "score": p_score}
+                
+                stats_scores[var] = {"value": val, "score": p_score, "per_min": round(val/minutes, 2) if var in METRICS_TO_NORMALIZE else None}
                 total_score += p_score
                 scored_v_count += 1
         

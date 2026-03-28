@@ -124,15 +124,18 @@ function showMatchDetails(match) {
         <div class="modal-grid">
             <div class="radar-section"><div style="width: 100%; max-width: 400px;"><canvas id="radar-chart"></canvas></div></div>
             <div class="stats-grid">
-                ${Object.entries(match.stats).filter(([k]) => !k.includes('teamRift') && !k.includes('Elder')).slice(0, 10).map(([key, stat]) => `
+                ${Object.entries(match.stats).filter(([k]) => !k.includes('teamRift') && !k.includes('Elder')).slice(0, 10).map(([key, stat]) => {
+                    const cleanName = key.replace('challenge_', '').replace(/([A-Z])/g, ' $1').trim();
+                    const displayValue = stat.per_min ? `${stat.per_min}/m` : stat.value.toLocaleString();
+                    return `
                     <div class="stat-row">
                         <div class="stat-label-row">
-                            <span>${key.replace('challenge_', '').replace(/([A-Z])/g, ' $1').trim()}</span>
+                            <span>${cleanName} <strong>${displayValue}</strong></span>
                             <span style="color: ${stat.score > 80 ? 'var(--win)' : stat.score < 30 ? 'var(--loss)' : 'gold'}">${stat.score}%</span>
                         </div>
                         <div class="stat-bar-container"><div class="stat-bar-fill" style="width: 0%" data-width="${stat.score}%"></div></div>
                     </div>
-                `).join('')}
+                `}).join('')}
             </div>
         </div>
     `;

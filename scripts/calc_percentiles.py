@@ -16,19 +16,42 @@ def calculate_challenger_percentiles(csv_path, output_json, variables_file):
     positions = df['individualPosition'].unique()
     stats_map = {}
 
+    METRICS_TO_NORMALIZE = [
+        'goldEarned', 
+        'totalMinionsKilled', 
+        'totalDamageDealtToChampions', 
+        'totalDamageTaken', 
+        'damageDealtToEpicMonsters', 
+        'damageDealtToTurrets',
+        'kills',
+        'deaths',
+        'assists',
+        'visionScore'
+    ]
+
     for pos in positions:
         if pd.isna(pos) or pos == 'UNSET': continue
         
         print(f"Calculating percentiles for position: {pos}")
-        pos_df = df[df['individualPosition'] == pos]
+        pos_df = df[df['individualPosition'] == pos].copy()
+        
+        # Avoid division by zero and small game durations
+        pos_df = pos_df[pos_df['timePlayed'] > 0]
+        minutes = pos_df['timePlayed'] / 60.0
+        
         pos_stats = {}
         
         for var in useful_vars:
-            if var in ['jugador', 'match_id', 'side', 'win', 'championName', 'champLevel', 'individualPosition']:
+            if var in ['jugador', 'match_id', 'side', 'win', 'championName', 'champLevel', 'individualPosition', 'timePlayed', 'gameCreation']:
                 continue
             
-            # Get values and remove NaN
-            values = pos_df[var].dropna().values
+            # Normalize if needed
+            if var in METRICS_TO_NORMALIZE:
+                values = (pos_df[var] / minutes).dropna().values
+            else:
+                # Get values and remove NaN
+                values = pos_df[var].dropna().values
+                
             if len(values) == 0: continue
             
             # Calculate percentiles from 0 to 100 with step 1
